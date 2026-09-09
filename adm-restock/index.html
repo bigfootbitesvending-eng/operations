@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADM Restock Run — Operations — Bigfoot Bites</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/shared/styles.css">
+<style>
+  main { max-width: 560px; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
+  header { margin-bottom: 2rem; border-bottom: 2px solid var(--ink); padding-bottom: 1rem; }
+  h1 { font-size: 1.6rem; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--ink-soft); font-size: 0.9rem; }
+  .back-link { display: inline-block; margin-bottom: 1rem; font-size: 0.85rem; color: var(--ink-soft); text-decoration: none; }
+  .panel { background: #fff; border: 1px solid var(--rule); border-left: 4px solid var(--ledger-green); border-radius: 6px; padding: 1.5rem; }
+  .btn-primary { display: block; width: 100%; padding: 0.9rem 1.25rem; background: var(--ledger-green); color: #fff; border: none; border-radius: 6px; font-family: var(--font-display); font-weight: 700; font-size: 1rem; cursor: pointer; transition: opacity 0.15s ease; }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  #status-line { margin-top: 1.25rem; font-size: 0.92rem; line-height: 1.5; }
+  #status-line.pending { color: var(--ink-soft); }
+  #status-line.success { color: var(--status-sent); }
+  #status-line.error { color: var(--status-error); }
+  .result-box { margin-top: 0.75rem; background: var(--ledger-green-soft); border-radius: 6px; padding: 0.9rem 1.1rem; font-size: 0.85rem; }
+  .result-box.error-box { background: var(--status-error-soft); }
+  .result-row { display: flex; justify-content: space-between; padding: 0.15rem 0; }
+  .result-row span:first-child { color: var(--ink-soft); }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--rule); border-top-color: var(--ledger-green); border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 0.5rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<main>
+  <a class="back-link" href="https://bigfootbitesvending-eng.github.io/operations/">&larr; Operations</a>
+  <header>
+    <h1>ADM Restock Run</h1>
+    <div class="subtitle">Trigger the daily ADM ingestion and restock check on demand</div>
+  </header>
+  <div class="panel">
+    <button type="button" class="btn-primary" id="trigger-btn">Run Now</button>
+    <div id="status-line"></div>
+  </div>
+</main>
+<script src="/shared/config.js"></script>
+<script>
+  const WEBHOOK_URL = 'https://randysmith42.app.n8n.cloud/webhook/adm-restock-run';
+  const btn = document.getElementById('trigger-btn');
+  const statusLine = document.getElementById('status-line');
+
+  function setStatus(html, cls) {
+    statusLine.className = cls || '';
+    statusLine.innerHTML = html;
+  }
+
+  function formatTime(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  }
+
+  btn.addEventListener('click', () => {
+    btn.disabled = true;
+    setStatus('<span class="spinner"></span>Running — this can take up to 2 minutes. Leave this page open.', 'pending');
+
+    fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
+      body: JSON.stringify({})
+    })
+      .then(res => res.json().then(body => ({ ok: res.ok, body })))
+      .then(({ ok, body }) => {
+        if (ok) {
+          setStatus(
+            `Run complete.
+            <div class="result-box">
+              <div class="result-row"><span>Triggered</span><span>${formatTime(body.triggered_at)}</span></div>
+              <div class="result-row"><span>Completed</span><span>${formatTime(body.completed_at)}</span></div>
+            </div>`,
+            'success'
+          );
+        } else {
+          setStatus(`Run failed.<div class="result-box error-box">${JSON.stringify(body)}</div>`, 'error');
+        }
+      })
+      .catch(err => {
+        setStatus(`Run failed — request error.<div class="result-box error-box">${err.message}</div>`, 'error');
+      })
+      .finally(() => { btn.disabled = false; });
+  });
+</script>
+</body>
+</html>
