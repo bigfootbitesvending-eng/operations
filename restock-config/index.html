@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@500;700&family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/shared/styles.css">
+<link rel="stylesheet" href="/shared/components.css">
 <style>
   :root {
     --paper: #F3F4F1;
@@ -30,16 +31,6 @@
   .subtitle { color: var(--ink-soft); font-size: 0.9rem; max-width: 62ch; }
 
   /* Messages live at the top and stay in view while you scroll. */
-  #banner {
-    position: sticky; top: 0; z-index: 30;
-    display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem;
-    margin: 0 0 0.5rem; padding: 0.85rem 1rem; border: 1px solid; border-radius: 0 0 6px 6px;
-    font-size: 0.92rem; line-height: 1.4; box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-  }
-  #banner.error { background: var(--danger-soft); border-color: var(--danger); color: #7A2E18; }
-  #banner.success { background: var(--ledger-green-soft); border-color: var(--ledger-green); color: #1F4A3E; }
-  #banner-text { white-space: pre-line; }
-  #banner-close { background: transparent; border: none; color: inherit; font-size: 1.3rem; line-height: 1; padding: 0 0.25rem; cursor: pointer; }
 
   /* Machine picker */
   .chip-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; padding-bottom: 0.5rem; margin-bottom: 1rem; }
@@ -100,17 +91,12 @@
     .field input { max-width: none; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
-  html { scroll-padding-top: 5rem; }
   button, .chip, input, select { min-height: 44px; }
-  #banner-close { min-width: 44px; }
+
 </style>
 </head>
 <body>
 <main>
-  <div id="banner" role="alert" aria-live="assertive" hidden>
-    <span id="banner-text"></span>
-    <button id="banner-close" type="button" aria-label="Dismiss message">×</button>
-  </div>
 
   <a class="breadcrumb" href="/">← Operator Tools</a>
   <header>
@@ -124,6 +110,7 @@
 </main>
 
 <script src="/shared/config.js"></script>
+<script src="/shared/messages.js"></script>
 <script>
   // "Restock Config — CRUD API" in n8n. One URL: GET lists, POST saves.
   const API_BASE = 'https://randysmith42.app.n8n.cloud/webhook/restock-config';
@@ -198,27 +185,15 @@
   const machinesEl = document.getElementById('machines');
   const chipBar = document.getElementById('chip-bar');
   const loadingEl = document.getElementById('loading');
-  const bannerEl = document.getElementById('banner');
-  const bannerText = document.getElementById('banner-text');
 
   let rows = [];
   let selected = null;
   const cardEls = {};   // machine -> card element
   const chipEls = {};   // machine -> chip button
   const editedSet = new Set();
-  let bannerTimer = null;
 
   // ---------- Messages (always at the top) ----------
-  function showBanner(kind, message) {
-    clearTimeout(bannerTimer);
-    bannerEl.className = kind;
-    bannerText.textContent = message;
-    bannerEl.hidden = false;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (kind === 'success') bannerTimer = setTimeout(hideBanner, 5000);
-  }
-  function hideBanner() { clearTimeout(bannerTimer); bannerEl.hidden = true; }
-  document.getElementById('banner-close').addEventListener('click', hideBanner);
+  function showBanner(kind, message) { BBMessages.show(kind, message); }
 
   // ---------- API ----------
   async function apiCall(options) {
