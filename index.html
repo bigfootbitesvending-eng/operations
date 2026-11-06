@@ -26,10 +26,13 @@ a.tool-card { display: block; background: #fff; border: 1px solid var(--rule); b
 a.tool-card:hover { background: var(--ledger-green-soft); }
 .tool-name { font-family: 'Roboto Slab', serif; font-weight: 700; font-size: 1.05rem; margin-bottom: 0.3rem; }
 .tool-desc { font-size: 0.88rem; color: var(--ink-soft); }
+  .back-link { display: inline-block; margin-bottom: 1rem; font-size: 0.85rem; color: var(--ink-soft); text-decoration: none; }
+  .back-link:focus-visible { outline: 2px solid var(--ledger-green); outline-offset: 2px; }
 </style>
 </head>
 <body>
 <main>
+<a class="back-link" href="/">&larr; Operator Tools</a>
 <header>
 <h1>Operations</h1>
 <div class="subtitle">On-demand triggers for workflows that normally run on a schedule</div>

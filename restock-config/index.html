@@ -42,7 +42,7 @@
   #banner-close { background: transparent; border: none; color: inherit; font-size: 1.3rem; line-height: 1; padding: 0 0.25rem; cursor: pointer; }
 
   /* Machine picker */
-  .chip-bar { display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+  .chip-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; padding-bottom: 0.5rem; margin-bottom: 1rem; }
   .chip {
     flex: 0 0 auto; display: inline-flex; align-items: center; gap: 0.45rem;
     font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.85rem;
@@ -100,6 +100,9 @@
     .field input { max-width: none; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  html { scroll-padding-top: 5rem; }
+  button, .chip, input, select { min-height: 44px; }
+  #banner-close { min-width: 44px; }
 </style>
 </head>
 <body>
@@ -212,7 +215,7 @@
     bannerText.textContent = message;
     bannerEl.hidden = false;
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (kind === 'success') bannerTimer = setTimeout(hideBanner, 8000);
+    if (kind === 'success') bannerTimer = setTimeout(hideBanner, 5000);
   }
   function hideBanner() { clearTimeout(bannerTimer); bannerEl.hidden = true; }
   document.getElementById('banner-close').addEventListener('click', hideBanner);
